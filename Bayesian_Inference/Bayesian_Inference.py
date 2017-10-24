@@ -160,9 +160,9 @@ ax.grid()
 ax.set_title("Comparing Empirical Prior with Previous Click Through Rates")
 plt.show()
 
-#---------------------------------------------------------------------
-# Obtain from Posterior, we select our prior as a Beta (11.5, 48.5)
-#---------------------------------------------------------------------
+#--------------------------------------------------------------------------------
+# Obtain from Posterior, we select our prior as a Beta distribution (11.5, 48.5)
+#--------------------------------------------------------------------------------
 import pymc3 as pm
 import numpy as np
 
@@ -197,3 +197,40 @@ with pm.Model() as model: #pm.Model creates a PyMC model object.. as model assig
                       , progressbar=True)               #obtain samples
                       
     
+#------------------------------------------------------------------------------------------------------
+# Histogram of the samples obtained from PyMC to see what the most probable values of θ are, 
+# compared with our prior distribution and the evidence (likelihood of our data for each value of θ):
+#------------------------------------------------------------------------------------------------------
+#plot the histogram of click through rates
+plt.rcParams['figure.figsize'] = (16, 7)
+
+#get histogram of samples from posterior distribution of CTRs
+posterior_counts, posterior_bins = np.histogram(trace['prior']
+                                                ,bins=zero_to_one)
+
+#normalized histogramposterior_counts = posterior_counts / float(posterior_counts.sum())
+#take the mean of the samples as most plausible value
+most_plausible_theta = np.mean(trace['prior'])
+
+#histogram of samples from prior distribution
+prior_counts, bins = np.histogram(prior_samples
+                                  , zero_to_one)#normalize
+prior_counts = map(lambda x: float(x)/prior_counts.sum()
+                   , prior_counts)
+
+#plot
+f, ax = plt.subplots(1)
+ax.plot(possible_theta_values, likelihoods)
+ax.plot(bins[:-1],prior_counts, alpha = .2)
+ax.plot(bins[:-1],posterior_counts)
+ax.axvline(most_plausible_theta, linestyle = "--", alpha = .2)
+line1, line2, line3, line4 = ax.lines
+ax.legend((line1, line2, line3, line4), ('Evidence'
+                                         , 'Prior Probability for Theta'
+                                         , 'Posterior Probability for Theta'
+                                         , 'Most Plausible Theta'
+                                        ), loc = 'upper left')
+ax.set_xlabel("Theta")
+ax.grid()
+ax.set_title("Prior Distribution Updated with Some Evidence")
+plt.show()
